@@ -1,28 +1,51 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
+Este es un proyecto Kotlin Multiplatform (KMP) con apps para Android e iOS.
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+La app es una lista de tareas sencilla: permite agregar tareas y marcarlas como completadas.
+La lógica de datos está escrita una sola vez en Kotlin y se comparte entre ambas plataformas.
 
-* [/sharedLogic](./sharedLogic/src) is for the code that will be shared between app targets in the project.
-  The most important subfolder is [commonMain](./sharedLogic/src/commonMain/kotlin). If preferred, you
-  can add code to the platform-specific folders here too.
+## Estructura del proyecto
 
-* [/sharedUI](./sharedUI/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./sharedUI/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./sharedUI/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./sharedUI/src/jvmMain/kotlin)
-    folder is the appropriate location.
+* [/sharedLogic](./sharedLogic/src) contiene la lógica compartida entre Android e iOS.
+  La carpeta más importante es [commonMain](./sharedLogic/src/commonMain/kotlin), donde está
+  [Tarea.kt](./sharedLogic/src/commonMain/kotlin/com/example/my_application/Tarea.kt):
+  - `Tarea`: modelo con `id`, `titulo` y `completada`.
+  - `TareasRepositorio`: interfaz con `obtenerTodas()`, `agregar(titulo)` y `alternarCompletada(id)`.
+  - `TareasEnMemoria`: implementación que guarda las tareas en memoria (se pierden al cerrar la app).
 
-### Running the apps
+  Las carpetas [androidMain](./sharedLogic/src/androidMain/kotlin) e [iosMain](./sharedLogic/src/iosMain/kotlin)
+  son para código específico de cada plataforma.
 
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
+* [/iosApp](./iosApp/iosApp) contiene la app de iOS, hecha en SwiftUI.
+  - [iOSApp.swift](./iosApp/iosApp/iOSApp.swift) es el punto de entrada y muestra `TareasView`.
+  - [TareasView.swift](./iosApp/iosApp/TareasView.swift) es la pantalla de tareas; usa `TareasEnMemoria`
+    desde el framework `SharedLogic`.
 
-- Android app: `./gradlew :androidApp:assembleDebug`
-- iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+* [/sharedUI](./sharedUI/src) contiene la interfaz en Compose Multiplatform. Por ahora solo tiene target
+  Android y el código está en [commonMain](./sharedUI/src/commonMain/kotlin). La app de iOS no lo usa.
+
+* [/androidApp](./androidApp/src) contiene la app de Android, que muestra la UI de `sharedUI`.
+  Por ahora es la pantalla de ejemplo de la plantilla y todavía no muestra las tareas.
+
+## Cómo usa iOS la lógica compartida
+
+El módulo `sharedLogic` se compila como un framework estático llamado `SharedLogic`
+(`baseName = "SharedLogic"` en [sharedLogic/build.gradle.kts](./sharedLogic/build.gradle.kts)).
+El target de iOS tiene una fase "Run Script" que ejecuta:
+
+```
+./gradlew :sharedLogic:embedAndSignAppleFrameworkForXcode
+```
+
+Por eso, al compilar en Xcode, cualquier cambio en el código Kotlin se recompila y queda disponible en
+Swift con `import SharedLogic`.
+
+## Cómo ejecutar las apps
+
+Usa las configuraciones de ejecución de la barra de herramientas de tu IDE, o estos comandos y opciones:
+
+- App de Android: `./gradlew :androidApp:assembleDebug`
+- App de iOS: abre la carpeta [/iosApp](./iosApp) en Xcode y ejecútala desde ahí.
 
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+Más información sobre [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html).
