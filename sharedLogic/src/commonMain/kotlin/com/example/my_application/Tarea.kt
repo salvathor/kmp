@@ -9,6 +9,7 @@ data class Tarea(
 interface TareasRepositorio {
     fun obtenerTodas(): List<Tarea>
     fun agregar(titulo: String): Tarea
+    fun alternarCompletada(id: String): Tarea?
 }
 
 class TareasEnMemoria: TareasRepositorio{
@@ -21,4 +22,12 @@ class TareasEnMemoria: TareasRepositorio{
         return  nueva
     }
 
+    // Invierte el estado `completada` de la tarea con el id dado; regresa null si no existe.
+    override fun alternarCompletada(id: String): Tarea? {
+        val indice = tareas.indexOfFirst { it.id == id }
+        if (indice == -1) return null
+        val actualizada = tareas[indice].copy(completada = !tareas[indice].completada)
+        tareas[indice] = actualizada
+        return actualizada
+    }
 }
